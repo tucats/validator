@@ -1,1 +1,9 @@
+casesensitive
+matchcase
+maxlen
+maxlength
+maxvalue
+minlen
+minlength
+minvalue
 tucats
