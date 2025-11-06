@@ -2,6 +2,7 @@ package validator
 
 import (
 	"encoding/json"
+	"reflect"
 	"strings"
 )
 
@@ -65,6 +66,38 @@ func (i *Item) validateValue(v any, depth int) error {
 	switch i.ValueType {
 	case TypeAny:
 		return nil // Accept anything.
+
+	case TypeMap:
+		// For maps, we can only validate keys, not values. IF there is an enum list, let's check it out.
+		if len(i.Enums) > 0 {
+			actual := reflect.ValueOf(v)
+			keys := actual.MapKeys()
+
+			for _, key := range keys {
+				found := false
+				keyString := key.String()
+
+				for _, enum := range i.Enums {
+					if i.CaseSensitive {
+						if keyString == enum {
+							found = true
+
+							break
+						}
+					} else {
+						if strings.EqualFold(keyString, enum) {
+							found = true
+
+							break
+						}
+					}
+				}
+
+				if !found {
+					return ErrInvalidEnumeratedValue.Context(i.Name).Value(keyString).Expected(i.Enums)
+				}
+			}
+		}
 
 	case TypeTime:
 		_, err := getTimeValue(v)

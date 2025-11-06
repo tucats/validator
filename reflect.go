@@ -63,6 +63,9 @@ func defineItem(v any, depth int) (*Item, error) {
 
 		item.IsPointer = true
 
+	case reflect.Map:
+		item.ValueType = TypeMap
+
 	case reflect.String:
 		item.ValueType = TypeString
 

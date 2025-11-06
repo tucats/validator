@@ -71,7 +71,7 @@ func (item *Item) ParseTag(tag string) error {
 			item.MinValue = value
 
 		case "enum":
-			if item.ValueType != TypeString && item.ValueType != TypeInt {
+			if item.ValueType != TypeString && item.ValueType != TypeInt && item.ValueType != TypeMap {
 				return ErrInvalidEnumType.Context(key).Value(item.ValueType.String())
 			}
 

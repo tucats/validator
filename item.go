@@ -12,6 +12,7 @@ const (
 	TypeBool
 	TypeArray
 	TypeStruct
+	TypeMap // Any map type falls in this bucket. Only validations are for key values
 	TypeUUID
 	TypeTime
 	TypeAny
@@ -62,6 +63,11 @@ func (t *Type) String() string {
 		return "any"
 	case TypeUUID:
 		return "uuid.UUID"
+	case TypeTime:
+		return "time.Time"
+	case TypeMap:
+		return "map[string]any"
+
 	default:
 		return fmt.Sprintf("unknown type %d", t)
 	}
