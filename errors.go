@@ -30,6 +30,7 @@ var ErrMaxDepthExceeded = NewError("maximum validation depth exceeded")
 var ErrArrayLengthOutOfRange = NewError("array length out of range")
 var ErrInvalidEnumeratedValue = NewError("invalid enumerated value")
 var ErrUndefinedStructure = NewError("undefined structure")
+var ErrInvalidFieldName = NewError("invalid field name")
 
 func NewError(msg string) *ValidationError {
 	return &ValidationError{

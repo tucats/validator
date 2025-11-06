@@ -62,6 +62,34 @@ func Test_AddressStruct(t *testing.T) {
 			nil,
 		},
 		{
+			"invalid Employees, extra field name",
+			&Employees{},
+			`{
+			    "department": "Space Research",
+				"division": "Engineering",
+				"building": 33,
+			    "staff": [
+					{
+						"name": "John Doe",
+						"age": 35,
+						"address":{
+							"street": "123 Main St",
+							"city": "New York"
+						}
+					},
+					{
+						"name": "Sue Smith",
+						"age": 52,
+						"address":{
+							"street": "155 Oak Ave",
+							"city": "New York"
+						}
+					}
+			    ]
+            }`,
+			validator.ErrInvalidFieldName.Value("building"),
+		},
+		{
 			"invalid Employees, bad division enum value",
 			&Employees{},
 			`{
