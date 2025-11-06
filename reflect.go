@@ -26,6 +26,21 @@ func defineItem(v any, depth int) (*Item, error) {
 	valueType := reflect.TypeOf(v)
 	kind := valueType.Kind()
 
+	// Handle well-known external types first
+	typeName := valueType.String()
+	switch typeName {
+	case "uuid.UUID":
+		item.ValueType = TypeUUID
+
+		return item, nil
+
+	case "time.Time":
+		item.ValueType = TypeTime
+
+		return item, nil
+	}
+
+	// Handle based on the kind of the reflected type
 	switch kind {
 	case reflect.Pointer:
 		// Dereference the pointer and create an item for the base type

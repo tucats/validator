@@ -12,7 +12,8 @@ const (
 	TypeBool
 	TypeArray
 	TypeStruct
-	TypeFunction
+	TypeUUID
+	TypeTime
 	TypeAny
 )
 
@@ -57,10 +58,10 @@ func (t *Type) String() string {
 		return "array"
 	case TypeStruct:
 		return "struct"
-	case TypeFunction:
-		return "function"
 	case TypeAny:
 		return "any"
+	case TypeUUID:
+		return "uuid.UUID"
 	default:
 		return fmt.Sprintf("unknown type %d", t)
 	}

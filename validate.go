@@ -63,6 +63,36 @@ func (i *Item) validateValue(v any, depth int) error {
 	}
 
 	switch i.ValueType {
+	case TypeTime:
+		_, err := getTimeValue(v)
+		if err != nil {
+			return ErrInvalidData.Context(i.Name).Value(v)
+		}
+
+		if i.HasMinValue {
+			t, _ := getTimeValue(i.MinValue)
+			vv, _ := getTimeValue(v)
+
+			if vv.Before(t) {
+				return ErrValueOutOfRange.Context(i.Name).Value(v)
+			}
+		}
+
+		if i.HasMaxValue {
+			t, _ := getTimeValue(i.MaxValue)
+			vv, _ := getTimeValue(v)
+			
+			if vv.After(t) {
+				return ErrValueOutOfRange.Context(i.Name).Value(v)
+			}
+		}
+
+	case TypeUUID:
+		_, err := getUUIDValue(v)
+		if err != nil {
+			return ErrInvalidData.Context(i.Name).Value(v)
+		}
+
 	case TypeBool:
 		_, err := getBoolValue(v)
 		if err != nil {

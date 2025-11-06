@@ -1,7 +1,9 @@
-package validator
+package tests
 
 import (
 	"testing"
+
+	"github.com/tucats/validator"
 )
 
 // Structures to validate.
@@ -84,7 +86,7 @@ func Test_AddressStruct(t *testing.T) {
 					}
 			    ]
             }`,
-			ErrInvalidEnumeratedValue.Context("division").Value("Science").Expected([]string{"HR", "Finance", "Marketing", "Engineering"}),
+			validator.ErrInvalidEnumeratedValue.Context("division").Value("Science").Expected([]string{"HR", "Finance", "Marketing", "Engineering"}),
 		},
 		{
 			"invalid Employees, age out of range",
@@ -111,7 +113,7 @@ func Test_AddressStruct(t *testing.T) {
 					}
 			    ]
             }`,
-			ErrValueOutOfRange.Context("age").Value(75),
+			validator.ErrValueOutOfRange.Context("age").Value(75),
 		},
 		{
 			"invalid Employees, empty staff array",
@@ -121,7 +123,7 @@ func Test_AddressStruct(t *testing.T) {
 				"division": "Engineering",
 			    "staff": []
             }`,
-			ErrArrayLengthOutOfRange.Context("staff").Value(0).Expected(1),
+			validator.ErrArrayLengthOutOfRange.Context("staff").Value(0).Expected(1),
 		},
 		{
 			"valid JSON for address",
@@ -139,7 +141,7 @@ func Test_AddressStruct(t *testing.T) {
 				"street": "",
 				"city": "New York"
 			}`,
-			ErrValueLengthOutOfRange.Context("street"),
+			validator.ErrValueLengthOutOfRange.Context("street"),
 		},
 		{
 			"city field not present",
@@ -147,7 +149,7 @@ func Test_AddressStruct(t *testing.T) {
 			`{
 				"street": "123 Main St"
 			}`,
-			ErrRequired.Context("city"),
+			validator.ErrRequired.Context("city"),
 		},
 		{
 			"valid Person",
@@ -173,7 +175,7 @@ func Test_AddressStruct(t *testing.T) {
 					"city": "New York"
 				}
 			}`,
-			ErrValueOutOfRange.Context("age").Value(15),
+			validator.ErrValueOutOfRange.Context("age").Value(15),
 		},
 		{
 			"invalid Person, missing city field",
@@ -185,7 +187,7 @@ func Test_AddressStruct(t *testing.T) {
 					"street": "123 Main St"
 				}
 			}`,
-			ErrRequired.Context("city"),
+			validator.ErrRequired.Context("city"),
 		},
 	}
 
@@ -196,9 +198,9 @@ func Test_AddressStruct(t *testing.T) {
 		)
 
 		// Define the structures we want to validate.
-		item, err := New(test.object)
+		item, err := validator.New(test.object)
 		if err != nil {
-			t.Fatal("Failed to define Address structure:", err)
+			t.Fatal("Failed to define structure:", err)
 		}
 
 		err = item.Validate(test.jsonText)

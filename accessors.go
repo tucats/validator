@@ -1,6 +1,60 @@
 package validator
 
-import "strconv"
+import (
+	"strconv"
+	"time"
+
+	"github.com/araddon/dateparse"
+	"github.com/google/uuid"
+)
+
+func getTimeValue(v any) (time.Time, error) {
+	switch value := v.(type) {
+	case time.Time:
+		return value, nil
+
+	case string:
+		t, err := dateparse.ParseAny(value)
+		if err != nil {
+			return time.Time{}, ErrInvalidData.Value(value)
+		}
+
+		return t, nil
+
+	default:
+		return time.Time{}, ErrInvalidData.Value(value)
+	}
+}
+
+func getUUIDValue(v any) (uuid.UUID, error) {
+	switch value := v.(type) {
+	case uuid.UUID:
+		return value, nil
+
+	case string:
+		if value == "" {
+			return uuid.Nil, nil
+		}
+
+		id, err := uuid.Parse(value)
+		if err != nil {
+			return uuid.Nil, ErrInvalidData.Value(value)
+		}
+
+		return id, nil
+
+	case []byte:
+		id, err := uuid.FromBytes(value)
+		if err != nil {
+			return uuid.Nil, ErrInvalidData.Value(value)
+		}
+
+		return id, nil
+
+	default:
+		return uuid.Nil, ErrInvalidData.Value(value)
+	}
+}
 
 func getIntValue(v any) (int, error) {
 	switch value := v.(type) {

@@ -1,4 +1,6 @@
+araddon
 casesensitive
+dateparse
 matchcase
 maxlen
 maxlength
