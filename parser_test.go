@@ -11,6 +11,7 @@ func TestItem_Parser(t *testing.T) {
 	tests := []struct {
 		name    string // description of this test case
 		tag     string
+		kind    validator.Type
 		want    validator.Item
 		wantErr error
 	}{
@@ -22,8 +23,10 @@ func TestItem_Parser(t *testing.T) {
 		{
 			name: "Valid enum list",
 			tag:  "enum=red|blue|green",
+			kind: validator.TypeString,
 			want: validator.Item{
-				Enums: []string{"red", "blue", "green"},
+				ValueType: validator.TypeString,
+				Enums:     []string{"red", "blue", "green"},
 			},
 		},
 		{
@@ -80,7 +83,7 @@ func TestItem_Parser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			item := validator.Item{}
+			item := validator.Item{ValueType: tt.kind}
 
 			gotErr := item.ParseTag(tt.tag)
 
