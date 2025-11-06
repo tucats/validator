@@ -82,7 +82,7 @@ func TestItem_Parser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			item := validator.Item{}
 
-			gotErr := item.Parser(tt.tag)
+			gotErr := item.ParseTag(tt.tag)
 
 			var msg1, msg2 string
 

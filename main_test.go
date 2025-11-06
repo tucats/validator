@@ -4,36 +4,197 @@ import (
 	"testing"
 )
 
-func Test_Driver(t *testing.T) {
+func Test_AddressStruct(t *testing.T) {
 	type TestITem struct {
 		name     string
+		object   any
 		jsonText string
-		expected bool
+		expected error
 	}
 
 	tests := []TestITem{
 		{
-			"Valid JSON for address",
+			"valid Employees",
+			&Employees{},
+			`{
+			    "department": "Space Research",
+				"division": "Engineering",
+			    "staff": [
+					{
+						"name": "John Doe",
+						"age": 35,
+						"address":{
+							"street": "123 Main St",
+							"city": "New York"
+						}
+					},
+					{
+						"name": "Sue Smith",
+						"age": 52,
+						"address":{
+							"street": "155 Oak Ave",
+							"city": "New York"
+						}
+					}
+			    ]
+            }`,
+			nil,
+		},
+		{
+			"invalid Employees, bad division enum value",
+			&Employees{},
+			`{
+			    "department": "Space Research",
+				"division": "Science",
+			    "staff": [
+					{
+						"name": "John Doe",
+						"age": 35,
+						"address":{
+							"street": "123 Main St",
+							"city": "New York"
+						}
+					},
+					{
+						"name": "Sue Smith",
+						"age": 52,
+						"address":{
+							"street": "155 Oak Ave",
+							"city": "New York"
+						}
+					}
+			    ]
+            }`,
+			ErrInvalidEnumeratedValue.Context("division"),
+		},
+		{
+			"invalid Employees, age out of range",
+			&Employees{},
+			`{
+			    "department": "Space Research",
+				"division": "Engineering",
+			    "staff": [
+					{
+						"name": "John Doe",
+						"age": 75,
+						"address":{
+							"street": "123 Main St",
+							"city": "New York"
+						}
+					},
+					{
+						"name": "Sue Smith",
+						"age": 52,
+						"address":{
+							"street": "155 Oak Ave",
+							"city": "New York"
+						}
+					}
+			    ]
+            }`,
+			ErrValueOutOfRange.Context("age"),
+		},
+		{
+			"invalid Employees, empty staff array",
+			&Employees{},
+			`{
+			    "department": "Space Research",
+				"division": "Engineering",
+			    "staff": []
+            }`,
+			ErrArrayLengthOutOfRange.Context("staff"),
+		},
+		{
+			"valid JSON for address",
+			&Address{},
 			`{
 				"street": "123 Main St",
-				"city": "New York",
+				"city": "New York"
 			}`,
-			true,
+			nil,
+		},
+		{
+			"street string is too short",
+			&Address{},
+			`{
+				"street": "",
+				"city": "New York"
+			}`,
+			ErrValueLengthOutOfRange.Context("street"),
+		},
+		{
+			"city field not present",
+			&Address{},
+			`{
+				"street": "123 Main St"
+			}`,
+			ErrRequired.Context("city"),
+		},
+		{
+			"valid Person",
+			&Person{},
+			`{
+				"name": "John Doe",
+				"age": 35,
+				"address":{
+					"street": "123 Main St",
+					"city": "New York"
+				}
+			}`,
+			nil,
+		},
+		{
+			"invalid Person, age out of range",
+			&Person{},
+			`{
+				"name": "John Doe",
+				"age": 15,
+				"address":{
+					"street": "123 Main St",
+					"city": "New York"
+				}
+			}`,
+			ErrValueOutOfRange.Context("age"),
+		},
+		{
+			"invalid Person, missing city field",
+			&Person{},
+			`{
+				"name": "John Doe",
+				"age": 42,
+				"address":{
+					"street": "123 Main St"
+				}
+			}`,
+			ErrRequired.Context("city"),
 		},
 	}
 
-	// Define the structures we want to validate.
-	err := Define("Address", &Address{})
-	if err != nil {
-		t.Fatal("Failed to define Address structure:", err)
-	}
-
 	for _, test := range tests {
-		err := Validate(test.name, test.jsonText)
-		expected := (err == nil) == test.expected
+		var (
+			msg1 string
+			msg2 string
+		)
+
+		// Define the structures we want to validate.
+		item, err := New(test.object)
+		if err != nil {
+			t.Fatal("Failed to define Address structure:", err)
+		}
+
+		err = item.Validate(test.jsonText)
+		if err != nil {
+			msg1 = err.Error()
+		}
+
+		if test.expected != nil {
+			msg2 = test.expected.Error()
+		}
+
+		expected := (msg1 == msg2)
 
 		if !expected {
-			t.Fatalf("JSON file %s validity: %v\n", test.jsonText, err)
+			t.Fatalf("In \"%s\", unexpected result: %v\n", test.name, err)
 		}
 	}
 }

@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func (item *Item) Parser(tag string) error {
+func (item *Item) ParseTag(tag string) error {
 	var err error
 
 	// Split the tag string into parts by commas
@@ -34,6 +34,9 @@ func (item *Item) Parser(tag string) error {
 		}
 
 		switch key {
+		case "name":
+			item.Name = value
+
 		case "required":
 			item.Required = true
 
@@ -68,6 +71,10 @@ func (item *Item) Parser(tag string) error {
 			item.MinValue = value
 
 		case "enum":
+			if item.ValueType != TypeString && item.ValueType != TypeInt {
+				return ErrInvalidEnumType.Context(key).Value(item.ValueType.String())
+			}
+
 			enums := strings.Split(value, "|")
 			if len(enums) == 0 {
 				return ErrMissingEnumValue.Context(key)
