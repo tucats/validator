@@ -53,6 +53,10 @@ func (e *ValidationError) Value(value any) *ValidationError {
 		return nil
 	}
 
+	if value == nil {
+		return e
+	}
+
 	e2 := e.Clone()
 	e2.value = fmt.Sprintf("%v", value)
 

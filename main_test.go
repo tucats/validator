@@ -65,7 +65,7 @@ func Test_AddressStruct(t *testing.T) {
 					}
 			    ]
             }`,
-			ErrInvalidEnumeratedValue.Context("division"),
+			ErrInvalidEnumeratedValue.Context("division").Value("Science").Expected([]string{"HR", "Finance", "Marketing", "Engineering"}),
 		},
 		{
 			"invalid Employees, age out of range",
@@ -92,7 +92,7 @@ func Test_AddressStruct(t *testing.T) {
 					}
 			    ]
             }`,
-			ErrValueOutOfRange.Context("age"),
+			ErrValueOutOfRange.Context("age").Value(75),
 		},
 		{
 			"invalid Employees, empty staff array",
@@ -102,7 +102,7 @@ func Test_AddressStruct(t *testing.T) {
 				"division": "Engineering",
 			    "staff": []
             }`,
-			ErrArrayLengthOutOfRange.Context("staff"),
+			ErrArrayLengthOutOfRange.Context("staff").Value(0).Expected(1),
 		},
 		{
 			"valid JSON for address",
@@ -154,7 +154,7 @@ func Test_AddressStruct(t *testing.T) {
 					"city": "New York"
 				}
 			}`,
-			ErrValueOutOfRange.Context("age"),
+			ErrValueOutOfRange.Context("age").Value(15),
 		},
 		{
 			"invalid Person, missing city field",
