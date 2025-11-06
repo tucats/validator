@@ -63,6 +63,9 @@ func (i *Item) validateValue(v any, depth int) error {
 	}
 
 	switch i.ValueType {
+	case TypeAny:
+		return nil // Accept anything.
+
 	case TypeTime:
 		_, err := getTimeValue(v)
 		if err != nil {
@@ -81,7 +84,7 @@ func (i *Item) validateValue(v any, depth int) error {
 		if i.HasMaxValue {
 			t, _ := getTimeValue(i.MaxValue)
 			vv, _ := getTimeValue(v)
-			
+
 			if vv.After(t) {
 				return ErrValueOutOfRange.Context(i.Name).Value(v)
 			}
@@ -205,7 +208,7 @@ func (i *Item) validateValue(v any, depth int) error {
 			fieldValue, exists := m[field.Name]
 			if !exists {
 				if field.Required {
-					return ErrRequired.Context(field.Name).Value(nil)
+					return ErrRequired.Value(field.Name)
 				}
 
 				continue

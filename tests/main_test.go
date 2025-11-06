@@ -149,7 +149,7 @@ func Test_AddressStruct(t *testing.T) {
 			`{
 				"street": "123 Main St"
 			}`,
-			validator.ErrRequired.Context("city"),
+			validator.ErrRequired.Value("city"),
 		},
 		{
 			"valid Person",
@@ -187,7 +187,7 @@ func Test_AddressStruct(t *testing.T) {
 					"street": "123 Main St"
 				}
 			}`,
-			validator.ErrRequired.Context("city"),
+			validator.ErrRequired.Value("city"),
 		},
 	}
 

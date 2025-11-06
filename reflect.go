@@ -24,6 +24,12 @@ func defineItem(v any, depth int) (*Item, error) {
 	item := &Item{}
 
 	valueType := reflect.TypeOf(v)
+	if valueType == nil {
+		item.ValueType = TypeAny
+
+		return item, nil
+	}
+
 	kind := valueType.Kind()
 
 	// Handle well-known external types first
@@ -42,6 +48,9 @@ func defineItem(v any, depth int) (*Item, error) {
 
 	// Handle based on the kind of the reflected type
 	switch kind {
+	case reflect.Interface:
+		item.ValueType = TypeAny
+
 	case reflect.Pointer:
 		// Dereference the pointer and create an item for the base type
 		valueType = valueType.Elem()
