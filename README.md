@@ -21,6 +21,11 @@ The tag is followed by a quoted string containing comma-separate validation oper
 | enum | strings | A list of strings separated by vertical bars enumerating the allowed field values |
 | matchcase| | The enumerated values must match case to match the field value |
 
+Note that some operations cannot be performed on all data types. For example, `min` and `max` can be
+used with a time.Time value to compare the time provided in the JSON to specific time values. However,
+these are not applicable to fields containing maps. By contrast, a map can only support the `enum`
+operator to validate the key values in the map. There are no validations for the values of the map.
+
 Here is an example of a set of structures that are to be used to process JSON data. The associated `json`
 and `validate` tags indicate how the field names are handled by JSON and the additional validation to be
 done.
