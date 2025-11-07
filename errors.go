@@ -77,7 +77,7 @@ func (e *ValidationError) Expected(expected ...any) *ValidationError {
 		switch v := v.(type) {
 		case []string:
 			for _, s := range v {
-				list = append(list, strconv.Quote(s))
+				list = append(list, s)
 			}
 
 			continue

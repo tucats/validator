@@ -84,3 +84,63 @@ a string) to verify that the JSON representation contains the required fields, n
 field names, and no invalid values. If the error return is nil, no errors where found.
 
 Currently, the validator stops on the first error it finds and reports it.
+
+## Programmatic Validators
+
+Validators can be created programmatically rather than by reading tags from Go
+structure definitions. This is useful if validating a single object that is
+not part of a structure, for example. Create the validator as usual, by passing
+in an example of the data type to be validated.
+
+```go
+    i := validator.NewType(validator.TypeInteger)
+```
+
+In this example, a validator is created for an integer value (due to the use
+of the value `0` in the call to `New()` to create the validator. Note that not
+all Go types are supported by the validator. For example, you cannot create a
+validator for non-standard integer or float values, such as Int15 or Float32.
+
+Once you have created the validator, you can set attributes on it. For example,
+this code sets a minimum and maximum value for the validator.
+
+```go
+    i := validator.NewType(validator.TypeInteger).SetMaxValue(1).SetMaxValue(10)
+
+    err := i.Validate(15)
+    if err == nil {
+        return err
+    }
+    ...
+```
+
+In this example, the validator is created for an integer value, and has minimum
+and maximum values set. A test to see if the value `15` is valid is performed.
+Because the validator requires a value from 1..10, the validator will return
+an error.
+
+The following modifier functions are used to set the characteristics of a
+validator.
+
+| Function | Description |
+|----------|-------------|
+| SetMinValue(v)   | Set the minimum allowed numeric value |
+| SetMAxValue(v)   | Set the maximum allowed numeric value |
+| SetMinLen(i)     | Set the minimum string or array length |
+| SetMaxLen(i)     | Set the maximum string or array length |
+| SetEnum(v...)    | Set the allowed values for integer or string values |
+| SetField(i, v)   | Set structure field `i` to validator `v` |
+| AddField(v) | Add a new structure field to the validator |
+| SetMatchCase(b) | Indicate if enumerated strings must match case |
+| SetForeignKey(b) | Indicate if undeclared field names are permitted |
+
+## Import and Export
+
+A validator can be converted to a string representation as a JSON object using
+the `String()` function.
+
+A validator can be created by reading a JSON string (typically that was
+created by the `String()` function) using the `NewFromJSON()` function.
+
+These functions make it easier for code to be written to allow externally-
+created validator definitions in JSON to be integrated into the program.

@@ -238,22 +238,25 @@ func (i *Item) validateValue(v any, depth int) error {
 		}
 
 		// Check if there are any field names that are not defined for the struct.
-		for key := range m {
-			found := false
+		// We do not do this if the validation allows "foreign" key values
+		if !i.AllowForeignKey {
+			for key := range m {
+				found := false
 
-			for _, field := range i.Fields {
-				if field.Name == key {
-					found = true
-					
-					break
+				for _, field := range i.Fields {
+					if field.Name == key {
+						found = true
+
+						break
+					}
+				}
+
+				if !found {
+					return ErrInvalidFieldName.Context(i.Name).Value(key)
 				}
 			}
-
-			if !found {
-				return ErrInvalidFieldName.Context(i.Name).Value(key)
-			}
 		}
-
+		
 		// Verify each field found in the map against the struct's fields.
 		for _, field := range i.Fields {
 			fieldValue, exists := m[field.Name]
