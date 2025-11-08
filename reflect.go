@@ -80,14 +80,13 @@ func defineItem(v any, depth int) (*Item, error) {
 
 	case reflect.Array, reflect.Slice:
 		// Create an item for the base type of the array/slice
-		item.ValueType = TypeArray
-
 		baseItem, err := New(reflect.Zero(valueType.Elem()).Interface())
 		if err != nil {
 			return nil, err
 		}
 
-		item.BaseType = baseItem
+		item = baseItem
+		item.IsArray = true
 
 	case reflect.Struct:
 		// Iterate over the fields of the struct and build items for each field
