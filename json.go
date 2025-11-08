@@ -17,9 +17,21 @@ func UnMarshal(data []byte, value any) error {
 	if err != nil {
 		err = v.Validate(string(data))
 		if err != nil {
-			return json.Unmarshal(data, value)
+			return json.Unmarshal(data, &value)
 		}
 	}
 
 	return err
+}
+
+func NewFromJSON(data string, value any) (*Item, error) {
+	// Parse a JSON string and convert it to an Item structure.
+	v := Item{}
+
+	err := json.Unmarshal([]byte(data), &v)
+	if err != nil {
+		return nil, err
+	}
+
+	return &v, nil
 }
