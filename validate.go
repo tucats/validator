@@ -39,7 +39,7 @@ func (i *Item) validateValue(v any, depth int) error {
 	}
 
 	// If this is an array, validate each element.
-	if i.IsArray || i.ValueType == TypeArray {
+	if i.IsArray {
 		array, ok := v.([]any)
 		if !ok {
 			return ErrInvalidData.Context(i.Name).Value(v)
@@ -54,7 +54,10 @@ func (i *Item) validateValue(v any, depth int) error {
 		}
 
 		for _, element := range array {
-			err := i.BaseType.validateValue(element, depth+1)
+			base := i
+			base.IsArray = false
+
+			err := base.validateValue(element, depth+1)
 			if err != nil {
 				return err
 			}

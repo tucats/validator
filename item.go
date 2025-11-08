@@ -13,7 +13,6 @@ const (
 	TypeInt
 	TypeFloat
 	TypeBool
-	TypeArray
 	TypeStruct
 	TypeMap // Any map type falls in this bucket. Only validations are for key values
 	TypeUUID
@@ -30,7 +29,6 @@ type Item struct {
 	ValueType       Type     `json:"type,omitempty"`
 	Enums           []string `json:"enums,omitempty"`
 	Fields          []Item   `json:"fields,omitempty"`
-	ValueTypeName   string   `json:"type_name,omitempty"`
 	BaseType        *Item    `json:"base_type,omitempty"`
 	MinLength       int      `json:"min_length,omitempty"`
 	MaxLength       int      `json:"max_length,omitempty"`
@@ -59,8 +57,6 @@ func (t *Type) String() string {
 		return "float"
 	case TypeBool:
 		return "bool"
-	case TypeArray:
-		return "array"
 	case TypeStruct:
 		return "struct"
 	case TypeAny:
