@@ -6,7 +6,10 @@ import (
 )
 
 // Maximum allowed recursion depth for validation.
-const maxValidationDepth = 10
+const (
+	maxValidationDepth = 10
+	aliasPrefix        = "&ALIAS:"
+)
 
 func New(v any) (*Item, error) {
 	return defineItem(v, 0)
@@ -25,7 +28,7 @@ func defineItem(v any, depth int) (*Item, error) {
 
 	valueType := reflect.TypeOf(v)
 	if valueType == nil {
-		item.ValueType = TypeAny
+		item.ItemType = TypeAny
 
 		return item, nil
 	}
@@ -36,12 +39,12 @@ func defineItem(v any, depth int) (*Item, error) {
 	typeName := valueType.String()
 	switch typeName {
 	case "uuid.UUID":
-		item.ValueType = TypeUUID
+		item.ItemType = TypeUUID
 
 		return item, nil
 
 	case "time.Time":
-		item.ValueType = TypeTime
+		item.ItemType = TypeTime
 
 		return item, nil
 	}
@@ -49,34 +52,33 @@ func defineItem(v any, depth int) (*Item, error) {
 	// Handle based on the kind of the reflected type
 	switch kind {
 	case reflect.Interface:
-		item.ValueType = TypeAny
+		item.ItemType = TypeAny
 
 	case reflect.Pointer:
 		// Dereference the pointer and create an item for the base type
 		valueType = valueType.Elem()
 		v = reflect.Zero(valueType).Interface()
+		item.ItemType = TypePointer
 
-		item, err = New(v)
+		item.BaseType, err = New(v)
 		if err != nil {
 			return nil, err
 		}
 
-		item.IsPointer = true
-
 	case reflect.Map:
-		item.ValueType = TypeMap
+		item.ItemType = TypeMap
 
 	case reflect.String:
-		item.ValueType = TypeString
+		item.ItemType = TypeString
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		item.ValueType = TypeInt
+		item.ItemType = TypeInt
 
 	case reflect.Float32, reflect.Float64:
-		item.ValueType = TypeFloat
+		item.ItemType = TypeFloat
 
 	case reflect.Bool:
-		item.ValueType = TypeBool
+		item.ItemType = TypeBool
 
 	case reflect.Array, reflect.Slice:
 		// Create an item for the base type of the array/slice
@@ -85,12 +87,35 @@ func defineItem(v any, depth int) (*Item, error) {
 			return nil, err
 		}
 
-		item = baseItem
-		item.IsArray = true
+		item.ItemType = TypeArray
+		item.BaseType = baseItem
 
 	case reflect.Struct:
+		var cacheThis bool
+
 		// Iterate over the fields of the struct and build items for each field
-		item.ValueType = TypeStruct
+		item.ItemType = TypeStruct
+
+		// If the typename is a custom type, see if there is already an alias
+		// for it. If so, reference the alias and we're done.
+		if typeName != "struct" {
+			previous, found := find(aliasPrefix + typeName)
+
+			if found && previous.Alias != "" {
+				item.Alias = typeName
+
+				return item, nil
+			}
+
+			// Not already cached, let's create a shell in the dictionary for this
+			// item now (to prevent infinite recursion) and set a flag to update it
+			// when we've done this definition.
+			cacheThis = true
+
+			store(aliasPrefix+typeName, &Item{
+				ItemType: TypeStruct,
+				Alias:    typeName})
+		}
 
 		for i := 0; i < valueType.NumField(); i++ {
 			field := valueType.Field(i)
@@ -120,7 +145,11 @@ func defineItem(v any, depth int) (*Item, error) {
 				}
 			}
 
-			item.Fields = append(item.Fields, *fieldItem)
+			item.Fields = append(item.Fields, fieldItem)
+		}
+
+		if cacheThis {
+			store(aliasPrefix+typeName, item)
 		}
 
 	default:

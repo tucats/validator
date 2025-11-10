@@ -8,7 +8,7 @@ import (
 
 func ValidateByName(name string, text string) error {
 	dictionaryLock.Lock()
-	item, exists := dictionary[name]
+	item, exists := Dictionary[name]
 	dictionaryLock.Unlock()
 
 	if !exists {
@@ -38,8 +38,22 @@ func (i *Item) validateValue(v any, depth int) error {
 		return ErrMaxDepthExceeded.Value(depth)
 	}
 
-	// If this is an array, validate each element.
-	if i.IsArray {
+	// If this item is an alias to another structure, resolve it now.
+	if i.Alias != "" {
+		aliasItem, exists := find(aliasPrefix + i.Alias)
+		if exists && aliasItem.ItemType == TypeStruct {
+			i = aliasItem.Copy()
+		}
+	}
+
+	switch i.ItemType {
+	case TypeAny:
+		return nil // Accept anything.
+
+	case TypePointer:
+		return i.BaseType.validateValue(v, depth+1)
+
+	case TypeArray:
 		array, ok := v.([]any)
 		if !ok {
 			return ErrInvalidData.Context(i.Name).Value(v)
@@ -54,21 +68,13 @@ func (i *Item) validateValue(v any, depth int) error {
 		}
 
 		for _, element := range array {
-			base := i
-			base.IsArray = false
-
-			err := base.validateValue(element, depth+1)
+			err := i.BaseType.validateValue(element, depth+1)
 			if err != nil {
 				return err
 			}
 		}
 
 		return nil
-	}
-
-	switch i.ValueType {
-	case TypeAny:
-		return nil // Accept anything.
 
 	case TypeMap:
 		// For maps, we can only validate keys, not values. IF there is an enum list, let's check it out.
@@ -237,7 +243,12 @@ func (i *Item) validateValue(v any, depth int) error {
 	case TypeStruct:
 		m, ok := v.(map[string]any)
 		if !ok {
-			return ErrInvalidData.Context(i.Name).Value(v)
+			a, ok := v.([]map[string]any)
+			if !ok || len(a) == 0 {
+				return ErrInvalidData.Context(i.Name).Value(v)
+			}
+
+			m = a[0]
 		}
 
 		// Check if there are any field names that are not defined for the struct.
@@ -259,7 +270,7 @@ func (i *Item) validateValue(v any, depth int) error {
 				}
 			}
 		}
-		
+
 		// Verify each field found in the map against the struct's fields.
 		for _, field := range i.Fields {
 			fieldValue, exists := m[field.Name]
@@ -278,7 +289,7 @@ func (i *Item) validateValue(v any, depth int) error {
 		}
 
 	default:
-		return ErrUnimplemented.Context(i.Name).Value(i.ValueType.String())
+		return ErrUnimplemented.Context(i.Name).Value(i.ItemType.String())
 	}
 
 	return nil
