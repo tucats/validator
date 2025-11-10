@@ -19,6 +19,7 @@ The tag is followed by a quoted string containing comma-separate validation oper
 | minlen | integer | The minimum length of a string value, or smallest allowed array size |
 | maxlen | integer | The maximum length of a string value. or largest allowed array size |
 | enum | strings | A list of strings separated by vertical bars enumerating the allowed field values |
+| list | | The string value can be a list, each of which must match the enum list |
 | matchcase| | The enumerated values must match case to match the field value |
 
 Note that some operations cannot be performed on all data types. For example, `min` and `max` can be
