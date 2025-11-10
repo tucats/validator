@@ -35,11 +35,11 @@ func (item *Item) ParseTag(tag string) error {
 
 		switch key {
 		case "list":
-			if item.ValueType != TypeString {
+			if item.ItemType != TypeString {
 				return ErrInvalidListTag.Context(key)
 			}
 
-			item.ValueType = TypeList
+			item.ItemType = TypeList
 
 		case "name":
 			item.Name = value
@@ -78,8 +78,8 @@ func (item *Item) ParseTag(tag string) error {
 			item.MinValue = value
 
 		case "enum":
-			if item.ValueType != TypeString && item.ValueType != TypeInt && item.ValueType != TypeMap && item.ValueType != TypeList {
-				return ErrInvalidEnumType.Context(key).Value(item.ValueType.String())
+			if item.ItemType != TypeString && item.ItemType != TypeInt && item.ItemType != TypeMap && item.ItemType != TypeList {
+				return ErrInvalidEnumType.Context(key).Value(item.ItemType.String())
 			}
 
 			enums := strings.Split(value, "|")

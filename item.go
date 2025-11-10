@@ -14,6 +14,8 @@ const (
 	TypeFloat
 	TypeBool
 	TypeStruct
+	TypeArray
+	TypePointer
 	TypeMap // Any map type falls in this bucket. Only validations are for key values
 	TypeUUID
 	TypeTime
@@ -27,9 +29,10 @@ const (
 
 type Item struct {
 	Name            string   `json:"name,omitempty"`
-	ValueType       Type     `json:"type,omitempty"`
+	Alias           string   `json:"alias,omitempty"`
+	ItemType        Type     `json:"type,omitempty"`
 	Enums           []string `json:"enums,omitempty"`
-	Fields          []Item   `json:"fields,omitempty"`
+	Fields          []*Item  `json:"fields,omitempty"`
 	BaseType        *Item    `json:"base_type,omitempty"`
 	MinLength       int      `json:"min_length,omitempty"`
 	MaxLength       int      `json:"max_length,omitempty"`
@@ -42,8 +45,6 @@ type Item struct {
 	HasMinValue     bool     `json:"has_min_value,omitempty"`
 	HasMaxValue     bool     `json:"has_max_value,omitempty"`
 	CaseSensitive   bool     `json:"case_sensitive,omitempty"`
-	IsPointer       bool     `json:"is_pointer,omitempty"`
-	IsArray         bool     `json:"is_array,omitempty"`
 }
 
 var TypeNames = map[Type]string{
@@ -60,8 +61,6 @@ var TypeNames = map[Type]string{
 	TypeList:    "stringList",
 }
 
-var Dictionary map[string]Item
-
 func (t *Type) String() string {
 	if name, ok := TypeNames[*t]; ok {
 		return name
@@ -71,7 +70,7 @@ func (t *Type) String() string {
 }
 
 func NewType(kind Type) *Item {
-	return &Item{ValueType: kind}
+	return &Item{ItemType: kind}
 }
 
 func (i *Item) SetMinValue(v any) *Item {
@@ -145,16 +144,16 @@ func (i *Item) SetForeignKeys(b bool) *Item {
 
 func (i *Item) SetField(index int, v Item) *Item {
 	for len(i.Fields) <= index {
-		i.Fields = append(i.Fields, Item{})
+		i.Fields = append(i.Fields, &Item{})
 	}
 
-	i.Fields[index] = v
+	i.Fields[index] = &v
 
 	return i
 }
 
 func (i *Item) AddField(v Item) *Item {
-	i.Fields = append(i.Fields, v)
+	i.Fields = append(i.Fields, &v)
 
 	return i
 }
@@ -174,4 +173,36 @@ func NewJSON(data []byte) (*Item, error) {
 	}
 
 	return &item, nil
+}
+
+func (i *Item) Copy() *Item {
+	if i == nil {
+		return nil
+	}
+
+	result := &Item{
+		Name:            i.Name,
+		Alias:           i.Alias,
+		ItemType:        i.ItemType,
+		Enums:           append([]string{}, i.Enums...),
+		Fields:          make([]*Item, len(i.Fields)),
+		BaseType:        i.BaseType.Copy(),
+		MinLength:       i.MinLength,
+		MaxLength:       i.MaxLength,
+		MinValue:        i.MinValue,
+		MaxValue:        i.MaxValue,
+		Required:        i.Required,
+		AllowForeignKey: i.AllowForeignKey,
+		HasMinLength:    i.HasMinLength,
+		HasMaxLength:    i.HasMaxLength,
+		HasMinValue:     i.HasMinValue,
+		HasMaxValue:     i.HasMaxValue,
+		CaseSensitive:   i.CaseSensitive,
+	}
+
+	for j, field := range i.Fields {
+		result.Fields[j] = field.Copy()
+	}
+
+	return result
 }
