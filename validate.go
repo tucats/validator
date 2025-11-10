@@ -194,6 +194,59 @@ func (i *Item) validateValue(v any, depth int) error {
 			}
 		}
 
+	case TypeList:
+		value, err := getStringValue(v)
+		if err != nil {
+			return ErrInvalidData.Context(i.Name).Value(v)
+		}
+
+		// Convert the string into a slice of strings. The only permitted separator is a comma.
+		elements := strings.Split(value, ",")
+
+		// IF there is a minimum length, check the length of the list
+		if i.HasMinLength {
+			if len(elements) < i.MinLength {
+				return ErrValueLengthOutOfRange.Context(i.Name).Value(value)
+			}
+		}
+
+		// If there is a maximum length, check the length of the list
+		if i.HasMaxLength {
+			if len(elements) > i.MaxLength {
+				return ErrValueLengthOutOfRange.Context(i.Name).Value(value)
+			}
+		}
+
+		// If there is an enum list, check each element in the list against the
+		// enumerated values list. This may be case-sensitive depending on the
+		// casematch setting for the item.
+		if len(i.Enums) > 0 {
+			for _, element := range elements {
+				found := false
+				element = strings.TrimSpace(element)
+
+				for _, enum := range i.Enums {
+					if i.CaseSensitive {
+						if element == enum {
+							found = true
+
+							break
+						}
+					} else {
+						if strings.EqualFold(element, enum) {
+							found = true
+
+							break
+						}
+					}
+				}
+
+				if !found {
+					return ErrInvalidEnumeratedValue.Context(i.Name).Value(element).Expected(i.Enums)
+				}
+			}
+		}
+
 	case TypeString:
 		value, err := getStringValue(v)
 		if err != nil {
@@ -259,7 +312,7 @@ func (i *Item) validateValue(v any, depth int) error {
 				}
 			}
 		}
-		
+
 		// Verify each field found in the map against the struct's fields.
 		for _, field := range i.Fields {
 			fieldValue, exists := m[field.Name]

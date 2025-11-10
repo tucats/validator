@@ -14,23 +14,25 @@ type ValidationError struct {
 	expected string
 }
 
+// Predefined validation errors.
+var ErrArrayLengthOutOfRange = NewError("array length out of range")
 var ErrEmptyTag = NewError("empty tag")
 var ErrEmptyTagValue = NewError("empty tag value")
-var ErrInvalidKeyword = NewError("invalid keyword")
-var ErrInvalidInteger = NewError("invalid integer value")
-var ErrMissingEnumValue = NewError("missing enum values")
+var ErrInvalidData = NewError("invalid data")
+var ErrInvalidEnumeratedValue = NewError("invalid enumerated value")
 var ErrInvalidEnumType = NewError("invalid field type for enum, must be string or int")
+var ErrInvalidFieldName = NewError("invalid field name")
+var ErrInvalidInteger = NewError("invalid integer value")
+var ErrInvalidKeyword = NewError("invalid keyword")
+var ErrInvalidListTag = NewError("invalid list tag for item type")
+var ErrMaxDepthExceeded = NewError("maximum validation depth exceeded")
+var ErrMissingEnumValue = NewError("missing enum values")
+var ErrRequired = NewError("required field missing")
+var ErrUndefinedStructure = NewError("undefined structure")
+var ErrUnimplemented = NewError("unimplemented type")
 var ErrUnsupportedType = NewError("unsupported type")
 var ErrValueOutOfRange = NewError("value out of range")
 var ErrValueLengthOutOfRange = NewError("value length out of range")
-var ErrInvalidData = NewError("invalid data")
-var ErrUnimplemented = NewError("unimplemented type")
-var ErrRequired = NewError("required field missing")
-var ErrMaxDepthExceeded = NewError("maximum validation depth exceeded")
-var ErrArrayLengthOutOfRange = NewError("array length out of range")
-var ErrInvalidEnumeratedValue = NewError("invalid enumerated value")
-var ErrUndefinedStructure = NewError("undefined structure")
-var ErrInvalidFieldName = NewError("invalid field name")
 
 func NewError(msg string) *ValidationError {
 	return &ValidationError{

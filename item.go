@@ -18,6 +18,7 @@ const (
 	TypeUUID
 	TypeTime
 	TypeAny
+	TypeList
 )
 
 const (
@@ -45,32 +46,28 @@ type Item struct {
 	IsArray         bool     `json:"is_array,omitempty"`
 }
 
+var TypeNames = map[Type]string{
+	TypeInvalid: "invalid",
+	TypeString:  "string",
+	TypeInt:     "int",
+	TypeFloat:   "float",
+	TypeBool:    "bool",
+	TypeStruct:  "struct",
+	TypeAny:     "any",
+	TypeUUID:    "uuid.UUID",
+	TypeTime:    "time.Time",
+	TypeMap:     "map[string]any",
+	TypeList:    "stringList",
+}
+
 var Dictionary map[string]Item
 
 func (t *Type) String() string {
-	switch *t {
-	case TypeString:
-		return "string"
-	case TypeInt:
-		return "int"
-	case TypeFloat:
-		return "float"
-	case TypeBool:
-		return "bool"
-	case TypeStruct:
-		return "struct"
-	case TypeAny:
-		return "any"
-	case TypeUUID:
-		return "uuid.UUID"
-	case TypeTime:
-		return "time.Time"
-	case TypeMap:
-		return "map[string]any"
-
-	default:
-		return fmt.Sprintf("unknown type %d", t)
+	if name, ok := TypeNames[*t]; ok {
+		return name
 	}
+
+	return fmt.Sprintf("unknown type %d", t)
 }
 
 func NewType(kind Type) *Item {
