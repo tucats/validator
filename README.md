@@ -1,4 +1,4 @@
-# validator v0.1.4
+# validator v0.1.6
 
 This is a JSON validator package. It allows tags to be added to structure definitions, and those structures are
 then passed to a Define() operation which creates a map of the valid structure definitions. Subsequently, JSON
@@ -73,7 +73,7 @@ the `Validate()` method for the validator object previously created.
     // Read the JSON file and validate it's contents.
     b, err := io.ReadFile("my.json")
     if err == nil {
-        err = employeeValidator(string(b))
+        err = employee.Validate(string(b))
     }
 
     // JSON text does not violate any specified data requirements...

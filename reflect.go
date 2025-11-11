@@ -8,7 +8,7 @@ import (
 // Maximum allowed recursion depth for validation.
 const (
 	maxValidationDepth = 10
-	aliasPrefix        = "&ALIAS:"
+	aliasPrefix        = "_TYPE_ALIAS_"
 )
 
 func New(v any) (*Item, error) {
