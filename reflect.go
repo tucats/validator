@@ -5,20 +5,30 @@ import (
 	"strings"
 )
 
-// Maximum allowed recursion depth for validation.
 const (
+	// Maximum allowed recursion depth for validation. This is used to prevent infinite recursion.
 	maxValidationDepth = 10
-	aliasPrefix        = "_TYPE_ALIAS_"
+
+	// Prefix added to key values placed in the dictionary to represent a reference to
+	// another validator. The user cannot create dictionary entries with this prefix.
+	aliasPrefix = "_TYPE_ALIAS_"
 )
 
+// New accepts any value and returns a new validator for it. If the value is a structure,
+// the validator will contain any rules specified in structure tags within the structure
+// definition. Additional validation rules can be defined by calling Parse() with a tag
+// string on the validator.
 func New(v any) (*Item, error) {
 	return defineItem(v, 0)
 }
 
+// defineItem handles defining a new validator for the given value. It can call itself
+// recursively to a maximum allowed depth to handle nested structures, arrays of
+// structures, etc.
 func defineItem(v any, depth int) (*Item, error) {
 	var err error
 
-	// IF we exceed maximum recursion depth, return an error
+	// If we exceed maximum recursion depth, return an error
 	if depth > maxValidationDepth {
 		return nil, ErrMaxDepthExceeded.Value(depth)
 	}
@@ -35,7 +45,9 @@ func defineItem(v any, depth int) (*Item, error) {
 
 	kind := valueType.Kind()
 
-	// Handle well-known external types first
+	// Handle well-known external types first. We have accessors, formatters, and
+	// validators for these types even though they are external types, because they
+	// are common value types found in JSON.
 	typeName := valueType.String()
 	switch typeName {
 	case "uuid.UUID":
@@ -47,9 +59,14 @@ func defineItem(v any, depth int) (*Item, error) {
 		item.ItemType = TypeTime
 
 		return item, nil
+
+	case "time.Duration":
+		item.ItemType = TypeDuration
+
+		return item, nil
 	}
 
-	// Handle based on the kind of the reflected type
+	// Not one of the well-known package types, so handle based on the kind of the reflected type
 	switch kind {
 	case reflect.Interface:
 		item.ItemType = TypeAny

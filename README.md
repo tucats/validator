@@ -1,10 +1,10 @@
-# validator v0.1.6
+# validator v0.1.7
 
 This is a JSON validator package. It allows tags to be added to structure definitions, and those structures are
 then passed to a Define() operation which creates a map of the valid structure definitions. Subsequently, JSON
 strings can be validated against the structure definitions to report if they are conformant or not.
 
-This is intended to help catch misspelled fields, missing require fields, and invalid field values.
+This is intended to help catch misspelled fields, missing required fields, and invalid field values.
 
 ## Using the `validate` tag
 
@@ -63,6 +63,8 @@ builds a data structure that defines how the validation is to be performed.  For
 
 The error return can indicate invalid tags or unsupportable data types for validation in the
 data structure.
+
+The `New()` function scans the object (a structure, in this case) and creates validation rules for any items specified with structure tags. It can support numeric, string, and boolean fields. It can handle the cases of uuid.UUID, time.Time, and time.Duration when expressed as a string. And it can handle arrays, pointers, and map types.
 
 ## Validating a JSON string
 

@@ -6,10 +6,11 @@ import (
 	"strings"
 )
 
+// ValidateByName validates a JSON string against a named validator. If the
+// named validator is not found, it returns an error. If the JSON string is
+// valid according to the named validator, it returns nil.
 func ValidateByName(name string, text string) error {
-	dictionaryLock.Lock()
-	item, exists := Dictionary[name]
-	dictionaryLock.Unlock()
+	item, exists := find(name)
 
 	if !exists {
 		return ErrUndefinedStructure.Context(name)
@@ -18,6 +19,12 @@ func ValidateByName(name string, text string) error {
 	return item.Validate(text)
 }
 
+// For a given validator, determine if the provided JSON string is valid
+// according to the rules for the given validator. If the JSON is not
+// correctly formed or if a validation rule is violated, an error is
+// returned. IF the provided JSON includes recursive or nested values
+// that exceed the maximum recursion depth, an error is returned. If
+// the JSON string is valid, it returns nil.
 func (i *Item) Validate(text string) error {
 	var (
 		err error
@@ -33,12 +40,14 @@ func (i *Item) Validate(text string) error {
 	return i.validateValue(v, 0)
 }
 
+// This is the recursive validator function for a single item.
 func (i *Item) validateValue(v any, depth int) error {
 	if depth > maxValidationDepth {
 		return ErrMaxDepthExceeded.Value(depth)
 	}
 
-	// If this item is an alias to another structure, resolve it now.
+	// If this item is an alias to another structure, resolve it now by
+	// reading from the dictionary (using the reserved alias prefix).
 	if i.Alias != "" {
 		aliasItem, exists := find(aliasPrefix + i.Alias)
 		if exists && aliasItem.ItemType == TypeStruct {
@@ -46,6 +55,7 @@ func (i *Item) validateValue(v any, depth int) error {
 		}
 	}
 
+	// Based on the item's type, perform the appropriate validations.
 	switch i.ItemType {
 	case TypeAny:
 		return nil // Accept anything.
@@ -128,6 +138,28 @@ func (i *Item) validateValue(v any, depth int) error {
 			vv, _ := getTimeValue(v)
 
 			if vv.After(t) {
+				return ErrValueOutOfRange.Context(i.Name).Value(v)
+			}
+		}
+
+	case TypeDuration:
+		vv, err := getDurationValue(v)
+		if err != nil {
+			return ErrInvalidData.Context(i.Name).Value(v)
+		}
+
+		if i.HasMinValue {
+			t, _ := getDurationValue(i.MinValue)
+
+			if vv.Milliseconds() < t.Milliseconds() {
+				return ErrValueOutOfRange.Context(i.Name).Value(v)
+			}
+		}
+
+		if i.HasMaxValue {
+			t, _ := getDurationValue(i.MaxValue)
+
+			if vv.Milliseconds() > t.Milliseconds() {
 				return ErrValueOutOfRange.Context(i.Name).Value(v)
 			}
 		}
