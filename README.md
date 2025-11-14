@@ -1,4 +1,4 @@
-# validator v0.1.8
+# validator v0.1.10
 
 This is a JSON validator package. It allows tags to be added to structure definitions, and those structures are
 then passed to a Define() operation which creates a map of the valid structure definitions. Subsequently, JSON

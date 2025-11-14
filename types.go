@@ -2,6 +2,7 @@ package validator
 
 import (
 	"strconv"
+	"strings"
 )
 
 // Define an int type that indicates what the underlying datatype of an item
@@ -31,12 +32,14 @@ const (
 
 // Map used to convert Type values to a string name.
 var TypeNames = map[Type]string{
+	TypePointer:  "pointer",
 	TypeInvalid:  "invalid",
 	TypeString:   "string",
 	TypeInt:      "int",
 	TypeFloat:    "float",
 	TypeBool:     "bool",
 	TypeStruct:   "struct",
+	TypeArray:    "array",
 	TypeAny:      "any",
 	TypeUUID:     "uuid.UUID",
 	TypeTime:     "time.Time",
@@ -60,4 +63,16 @@ func (t *Type) String() string {
 // or the explicit rule creation methods to add rules to the validator.
 func NewType(kind Type) *Item {
 	return &Item{ItemType: kind}
+}
+
+// For a given type name, return the corresponding Type value. If the name is
+// not recognized, return TypeInvalid and an error.
+func TypeFromString(name string) (Type, error) {
+	for t, n := range TypeNames {
+		if strings.EqualFold(n, name) {
+			return t, nil
+		}
+	}
+
+	return TypeInvalid, ErrUnsupportedType.Context(name)
 }

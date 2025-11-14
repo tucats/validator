@@ -7,6 +7,9 @@ import (
 // Define an individual validator. This structure is used for any structure, field,
 // map, array, or individual value. It contains flags representing all the validation
 // rules defined for this item.
+//
+// IF any of these json tag names are changed, the corresponding field in the
+// checkFields() function will need to be updated.
 type Item struct {
 	// The name of this item. This is usually the field name in a
 	// structure. For other types, this is an empty string.
@@ -84,6 +87,10 @@ type Item struct {
 	// case-sensitive.
 	CaseSensitive bool `json:"case_sensitive,omitempty"`
 }
+
+const (
+	typeKeyName = "type"
+)
 
 // SetRequired sets whether this item is required or not. By default, a json
 // payload does not have to explicitly specify fields. If the field must be
