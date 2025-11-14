@@ -1,6 +1,9 @@
 package validator
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"strings"
+)
 
 // String converts a validator item into a JSON-formatted string.
 func (i *Item) String() string {
@@ -23,7 +26,7 @@ func NewJSON(data []byte) (*Item, error) {
 		return nil, err
 	}
 
-	return &item, nil
+	return &item, check(&item)
 }
 
 // UnMarshal is a helper function that combines JSON validation and conversion of
@@ -62,4 +65,39 @@ func NewFromJSON(data string, value any) (*Item, error) {
 	}
 
 	return &v, nil
+}
+
+// check is an internal validator for validator structures.
+func check(i *Item) error {
+	if i == nil {
+		return nil
+	}
+
+	// Check local items first.
+	if i.ItemType == TypeInvalid || strings.HasPrefix(i.ItemType.String(), "unknown") {
+		return ErrInvalidValidator.Context("type").Value("missing or invalid type")
+	}
+
+	// Check subordinate items.
+	if err := check(i.BaseType); err != nil {
+		return err
+	}
+
+	for _, field := range i.Fields {
+		if err := check(field); err != nil {
+			return err
+		}
+	}
+
+	// If the min or max lengths are non-zero, verify that the flag is
+	// set indicating they exit.
+	if i.MinLength > 0 && !i.HasMinLength {
+		return ErrInvalidValidator.Context("HasMinLength").Value("non-zero minLength without hasMinLength")
+	}
+
+	if i.MaxLength > 0 && !i.HasMaxLength {
+		return ErrInvalidValidator.Context("HasMaxLength").Value("non-zero maxLength without hasMaxLength")
+	}
+
+	return nil
 }
