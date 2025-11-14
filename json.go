@@ -8,17 +8,117 @@ func (i *Item) String() string {
 		return "<nil>"
 	}
 
+	// We do this is a two-step process. First, marshal the item as JSON.
 	b, _ := json.MarshalIndent(i, "", "   ")
+
+	// Now, read it back in into a map, where we can search for and manipulate
+	// values that are numerically encoded to display as text.
+
+	var m map[string]any
+
+	err := json.Unmarshal(b, &m)
+	if err != nil {
+		return err.Error()
+	}
+
+	m = stringify(m, true)
+
+	// Finally, convert the revised map to JSON and return it as a string.
+	b, _ = json.MarshalIndent(m, "", "   ")
 
 	return string(b)
 }
 
-// NewJSON converts a JSON byt array into a validator item. IF the JSON did
+func stringify(m map[string]any, toString bool) map[string]any {
+	result := map[string]any{}
+
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+
+	for _, key := range keys {
+		value := m[key]
+
+		switch actual := value.(type) {
+		case map[string]any:
+			result[key] = stringify(actual, toString)
+
+		case float64:
+			if key == typeKeyName && toString {
+				typeValue := Type(actual)
+
+				result[key] = typeValue.String()
+			} else {
+				result[key] = actual
+			}
+
+		case int:
+			if key == typeKeyName && toString {
+				t := Type(actual)
+
+				result[key] = t.String()
+			} else {
+				result[key] = actual
+			}
+
+		case string:
+			if key == typeKeyName && !toString {
+				if t, err := TypeFromString(actual); err == nil {
+					result[key] = t
+				}
+			} else {
+				result[key] = actual
+			}
+
+		case []any:
+			newArray := []any{}
+
+			for _, element := range actual {
+				if m, ok := element.(map[string]any); ok {
+					newArray = append(newArray, stringify(m, toString))
+				} else {
+					newArray = append(newArray, element)
+				}
+			}
+
+			result[key] = newArray
+
+		default:
+			result[key] = value
+		}
+	}
+
+	return result
+}
+
+// NewJSON converts a JSON byte array into a validator item. IF the JSON did
 // not contain a valid validator item, it will return an error.
 func NewJSON(data []byte) (*Item, error) {
-	var item Item
+	var (
+		err  error
+		item Item
+		m    map[string]any
+	)
 
-	err := json.Unmarshal(data, &item)
+	// First, unmarshal the JSON into a map.
+	err = json.Unmarshal(data, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	// Search the map for "type" key values that are strings, that need to be converted
+	// to int values.
+	m = stringify(m, false)
+
+	// Convert the map back to JSON
+	data, err = json.Marshal(m)
+	if err != nil {
+		return nil, err
+	}
+
+	// Finally, unmarshal the JSON back into the validator item.
+	err = json.Unmarshal(data, &item)
 	if err != nil {
 		return nil, err
 	}
@@ -46,20 +146,4 @@ func UnMarshal(data []byte, value any) error {
 	}
 
 	return err
-}
-
-// NewFromJSON converts a JSON string into a validator item. If the JSON
-// did not contain a valid validator item, it will return an error.
-// This is different from NewJSON only in that this function accepts
-// the JSON as a string instead of a byte array.
-func NewFromJSON(data string, value any) (*Item, error) {
-	// Parse a JSON string and convert it to an Item structure.
-	v := Item{}
-
-	err := json.Unmarshal([]byte(data), &v)
-	if err != nil {
-		return nil, err
-	}
-
-	return &v, nil
 }

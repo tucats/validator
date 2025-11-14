@@ -66,7 +66,7 @@ func (item *Item) ParseTag(tag string) error {
 
 		// Based on the key, apply the value to the item.
 		switch key {
-		case "type":
+		case typeKeyName:
 			switch value {
 			case "string":
 				item.ItemType = TypeString

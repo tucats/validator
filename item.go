@@ -85,6 +85,10 @@ type Item struct {
 	CaseSensitive bool `json:"case_sensitive,omitempty"`
 }
 
+const (
+	typeKeyName = "type"
+)
+
 // SetRequired sets whether this item is required or not. By default, a json
 // payload does not have to explicitly specify fields. If the field must be
 // present in the JSON, then set this to true.

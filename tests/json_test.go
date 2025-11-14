@@ -29,6 +29,6 @@ func Test_Export(t *testing.T) {
 
 	// See if the two validators are identical.
 	if !reflect.DeepEqual(i1, i2) {
-		t.Error("Unexpected difference between original and recreated validators")
+		t.Error("Unexpected difference between original and recreated validators\n\nOriginal:\n", i1.String(), "\n\nRecreated:\n", i2.String())
 	}
 }
