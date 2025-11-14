@@ -67,6 +67,14 @@ func defineItem(v any, depth int) (*Item, error) {
 
 	case reflect.Map:
 		item.ItemType = TypeMap
+		// Determine the type of the map's value type
+		elemType := valueType.Elem()
+		v = reflect.Zero(elemType).Interface()
+
+		item.BaseType, err = New(v)
+		if err != nil {
+			return nil, err
+		}
 
 	case reflect.String:
 		item.ItemType = TypeString

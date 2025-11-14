@@ -34,6 +34,10 @@ func (i *Item) Validate(text string) error {
 }
 
 func (i *Item) validateValue(v any, depth int) error {
+	if i == nil {
+		return ErrNilValidator
+	}
+
 	if depth > maxValidationDepth {
 		return ErrMaxDepthExceeded.Value(depth)
 	}
@@ -77,12 +81,13 @@ func (i *Item) validateValue(v any, depth int) error {
 		return nil
 
 	case TypeMap:
-		// For maps, we can only validate keys, not values. IF there is an enum list, let's check it out.
+		// A current limitation of maps is that the key must always be of type string.
 		if len(i.Enums) > 0 {
 			actual := reflect.ValueOf(v)
 			keys := actual.MapKeys()
 
 			for _, key := range keys {
+				// Validate that the key value itself is valid.
 				found := false
 				keyString := key.String()
 
@@ -104,6 +109,14 @@ func (i *Item) validateValue(v any, depth int) error {
 
 				if !found {
 					return ErrInvalidEnumeratedValue.Context(i.Name).Value(keyString).Expected(i.Enums)
+				}
+
+				// Validate that the value of the key in this map is also valid.
+				mapValue := actual.MapIndex(key).Interface()
+
+				err := i.BaseType.validateValue(mapValue, depth+1)
+				if err != nil {
+					return err
 				}
 			}
 		}

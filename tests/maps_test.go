@@ -7,16 +7,16 @@ import (
 )
 
 // Structure to validate.
-type MapObject struct {
-	Items map[string]string `json:"items" validate:"required,enum=key1|key2"`
+type MapStrings struct {
+	Items map[string]string `json:"items" validate:"required, key=(key1,key2), value=(enum=(value1, value2))"`
 }
 
-type MapObject2 struct {
+type MapInts struct {
 	Items map[string]int `json:"items" validate:"required,enum=key1|key2"`
 }
 
-type MapObject3 struct {
-	Items map[string][]string `json:"items" validate:"required,enum=key1|key2"`
+type MapStringArray struct {
+	Items map[string][]string `json:"items" validate:"required,enum=key1|key2,base=(enum=value1|value2|value3|value4)"`
 }
 
 func Test_Maps(t *testing.T) {
@@ -30,7 +30,7 @@ func Test_Maps(t *testing.T) {
 	tests := []TestITem{
 		{
 			"Valid map[string]string",
-			&MapObject{},
+			&MapStrings{},
 			`{
 			    "items": {
 				    "key1": "value1",
@@ -41,7 +41,7 @@ func Test_Maps(t *testing.T) {
 		},
 		{
 			"Valid map[string]int",
-			&MapObject2{},
+			&MapInts{},
 			`{
 			    "items": {
 				    "key1": 55,
@@ -52,7 +52,7 @@ func Test_Maps(t *testing.T) {
 		},
 		{
 			"Valid map[string][]string]",
-			&MapObject2{},
+			&MapStringArray{},
 			`{
 			    "items": {
 				    "key1": ["value1","value2"],
@@ -63,7 +63,7 @@ func Test_Maps(t *testing.T) {
 		},
 		{
 			"invalid map key value",
-			&MapObject2{},
+			&MapInts{},
 			`{
 			    "items": {
 				    "key3": 55,
@@ -73,8 +73,30 @@ func Test_Maps(t *testing.T) {
 			validator.ErrInvalidEnumeratedValue.Context("items").Value("key3").Expected([]string{"key1", "key2"}),
 		},
 		{
+			"Invalid map[string]string, bad value",
+			&MapStrings{},
+			`{
+			    "items": {
+				    "key1": "value3",
+                    "key2": "value2"
+				}
+			}`,
+			validator.ErrInvalidEnumeratedValue.Value("value3").Expected([]string{"value1", "value2"}),
+		},
+		{
+			"Invalid map[string][]string], bad value array member",
+			&MapStringArray{},
+			`{
+			    "items": {
+				    "key1": ["value1","value5"],
+                    "key2": ["value3","value4"]
+				}
+			}`,
+			validator.ErrInvalidEnumeratedValue.Value("value5").Expected([]string{"value1", "value2", "value3", "value4"}),
+		},
+		{
 			"invalid map, missing required field",
-			&MapObject{},
+			&MapStrings{},
 			`{
 			}`,
 			validator.ErrRequired.Value("items"),

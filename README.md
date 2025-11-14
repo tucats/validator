@@ -1,4 +1,4 @@
-# validator v0.1.4
+# validator v0.1.8
 
 This is a JSON validator package. It allows tags to be added to structure definitions, and those structures are
 then passed to a Define() operation which creates a map of the valid structure definitions. Subsequently, JSON
@@ -20,11 +20,30 @@ The tag is followed by a quoted string containing comma-separate validation oper
 | maxlen | integer | The maximum length of a string value. or largest allowed array size |
 | enum | strings | A list of strings separated by vertical bars enumerating the allowed field values |
 | matchcase| | The enumerated values must match case to match the field value |
+| key | (items) | Specify limits on a map key value (which is always a string) |
+| value | (items) | Specify rules on a value for an array or map |
 
-Note that some operations cannot be performed on all data types. For example, `min` and `max` can be
+You can separate enumerated values using commas rather than vertical bars by enclosing the
+list of enumerated values in parenthesis.  That is, `enum=red|green|blue` is the same as
+specifying `enum=(red,green,blue)`. Note that leading and trailing spaces in enumerated values
+are ignored.
+
+some operations cannot be performed on all data types. For example, `min` and `max` can be
 used with a time.Time value to compare the time provided in the JSON to specific time values. However,
-these are not applicable to fields containing maps. By contrast, a map can only support the `enum`
-operator to validate the key values in the map. There are no validations for the values of the map.
+these are not applicable to fields containing maps. For an array, the validations apply to the array
+itself (such as minimum or maximum length) and the `value=` clause defines the validation rules for
+the individual values in the array. Note that you can use parentheses to delimit lists in the `value=`
+clause, such as
+
+```go
+type Foo struct {
+    Colors []string `validate:"minlen=1,value=(enum=red,green,blue)"`
+}
+```
+
+In this example, the JSON representation of a `Foo` structure must include an array with at least
+one element (`minlen`) but each value in the array must also conform to an enumerated list allowing
+only the values `red`, `green`, and `blue`.
 
 Here is an example of a set of structures that are to be used to process JSON data. The associated `json`
 and `validate` tags indicate how the field names are handled by JSON and the additional validation to be

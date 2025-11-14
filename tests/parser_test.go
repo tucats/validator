@@ -7,6 +7,68 @@ import (
 	"github.com/tucats/validator"
 )
 
+func Test_split(t *testing.T) {
+	tests := []struct {
+		name string // description of this test case
+		// Named input parameters for target function.
+		input     string
+		separator string
+		want      []string
+	}{
+		{
+			name:      "no separator",
+			input:     "red roses",
+			separator: ",",
+			want:      []string{"red roses"},
+		},
+		{
+			name:      "single separator",
+			input:     "Hello, World!",
+			separator: ",",
+			want:      []string{"Hello", "World!"},
+		},
+		{
+			name:      "multiple separators",
+			input:     "red, blue,green",
+			separator: ",",
+			want:      []string{"red", "blue", "green"},
+		},
+		{
+			name:      "separators with parentheses",
+			input:     "color=(red, blue), required",
+			separator: ",",
+			want:      []string{"color=(red, blue)", "required"},
+		},
+		{
+			name:      "separators with nested parentheses",
+			input:     "color=(base=(omit,min=1), red, blue), required",
+			separator: ",",
+			want:      []string{"color=(base=(omit,min=1), red, blue)", "required"},
+		},
+		{
+			name:      "separators with single quotes",
+			input:     "base='omit,min=1', red, blue",
+			separator: ",",
+			want:      []string{"base='omit,min=1'", "red", "blue"},
+		},
+		{
+			name:      "separators with double quotes",
+			input:     "base=\"omit,min=1\", red, blue",
+			separator: ",",
+			want:      []string{"base=\"omit,min=1\"", "red", "blue"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := validator.Split(tt.input, tt.separator)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("split() = %#v, want %#v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestItem_Parser(t *testing.T) {
 	tests := []struct {
 		name    string // description of this test case
@@ -15,6 +77,19 @@ func TestItem_Parser(t *testing.T) {
 		want    validator.Item
 		wantErr error
 	}{
+		{
+			name: "Validator for array element values",
+			tag:  "type=array,base=(type=string,minlen=1)",
+			kind: validator.TypeArray,
+			want: validator.Item{
+				ItemType: validator.TypeArray,
+				BaseType: &validator.Item{
+					ItemType:     validator.TypeString,
+					HasMinLength: true,
+					MinLength:    1,
+				},
+			},
+		},
 		{
 			name:    "Invalid enum list",
 			tag:     "enum=,required",
