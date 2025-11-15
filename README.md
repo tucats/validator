@@ -1,4 +1,4 @@
-# validator v0.1.10
+# validator v0.1.11
 
 This is a JSON validator package. It allows tags to be added to structure definitions, and those structures are
 then passed to a Define() operation which creates a map of the valid structure definitions. Subsequently, JSON
@@ -84,6 +84,11 @@ The error return can indicate invalid tags or unsupportable data types for valid
 data structure.
 
 The `New()` function scans the object (a structure, in this case) and creates validation rules for any items specified with structure tags. It can support numeric, string, and boolean fields. It can handle the cases of uuid.UUID, time.Time, and time.Duration when expressed as a string. And it can handle arrays, pointers, and map types.
+
+For integer value types, a default min and max value is automatically created based on the
+size of the integer type. So a structure of Go type `uint8` will automatically have a minimum value of 0 and a maximum value of 255. Similarly, a structure field of type `float32` will have a size
+range based on a 32-bit floating point value.  No such checks are done for `float64` or `int64`
+data types.
 
 ## Validating a JSON string
 

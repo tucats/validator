@@ -239,7 +239,7 @@ func (i *Item) validateValue(v any, depth int) error {
 		}
 
 		if i.HasMaxValue {
-			t, _ := getFloatValue(i.MinValue)
+			t, _ := getFloatValue(i.MaxValue)
 			if value > t {
 				return ErrValueOutOfRange.Context(i.Name).Value(value)
 			}

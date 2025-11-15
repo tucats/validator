@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"math"
 	"reflect"
 	"strings"
 )
@@ -96,10 +97,49 @@ func defineItem(v any, depth int) (*Item, error) {
 	case reflect.String:
 		item.ItemType = TypeString
 
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+	case reflect.Uint8:
+		item.ItemType = TypeInt
+		item.SetMinValue(0)
+		item.SetMaxValue(math.MaxUint8)
+
+	case reflect.Uint16:
+		item.ItemType = TypeInt
+		item.SetMinValue(0)
+		item.SetMaxValue(math.MaxUint16)
+
+	case reflect.Uint32:
+		item.ItemType = TypeInt
+		item.SetMinValue(0)
+		item.SetMaxValue(math.MaxUint32)
+
+	case reflect.Int8:
+		item.ItemType = TypeInt
+		item.SetMinValue(math.MinInt8)
+		item.SetMaxValue(math.MaxInt8)
+
+	case reflect.Int16:
+		item.ItemType = TypeInt
+		item.SetMinValue(math.MinInt16)
+		item.SetMaxValue(math.MaxInt16)
+
+	case reflect.Int32:
+		item.ItemType = TypeInt
+		item.SetMinValue(math.MinInt32)
+		item.SetMaxValue(math.MaxInt32)
+
+	case reflect.Int64:
+		item.ItemType = TypeInt
+		item.SetMinValue(math.MinInt64)
+		item.SetMaxValue(math.MaxInt64)
+
+	case reflect.Int:
 		item.ItemType = TypeInt
 
-	case reflect.Float32, reflect.Float64:
+	case reflect.Float32:
+		item.ItemType = TypeFloat
+		item.SetMaxValue(math.MaxFloat32)
+
+	case reflect.Float64:
 		item.ItemType = TypeFloat
 
 	case reflect.Bool:
