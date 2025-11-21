@@ -48,6 +48,18 @@ var TypeNames = map[Type]string{
 	TypeList:     "stringList",
 }
 
+var TypeNamesMap = map[string]Type{
+	"string":   TypeString,
+	"int":      TypeInt,
+	"float":    TypeFloat,
+	"bool":     TypeBool,
+	"uuid":     TypeUUID,
+	"time":     TypeTime,
+	"duration": TypeDuration,
+	"map":      TypeMap,
+	"list":     TypeList,
+}
+
 // String method for Type to return the string name of the type. Mostly
 // used for debugging purposes.
 func (t *Type) String() string {

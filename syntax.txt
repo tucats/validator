@@ -1,0 +1,7 @@
+
+
+string: minlength=1, maxlength=10, enum=(red, blue,green);
+object: {
+    age integer: minvalue=18, maxvalue=64;
+    name string: required;
+};
