@@ -1,4 +1,4 @@
-package validator_test
+package tests
 
 import (
 	"reflect"
@@ -178,6 +178,49 @@ func TestCompile(t *testing.T) {
 				},
 			},
 			err: nil,
+		},
+		{
+			name: "array of integers",
+			src:  `[]int: minlen=1, maxlen=10, base=(minvalue=1, maxvalue=10)`,
+			want: &validator.Item{
+				ItemType:     validator.TypeArray,
+				HasMinLength: true,
+				MinLength:    1,
+				HasMaxLength: true,
+				MaxLength:    10,
+				BaseType: &validator.Item{
+					ItemType:    validator.TypeInt,
+					HasMinValue: true,
+					MinValue:    "1",
+					HasMaxValue: true,
+					MaxValue:    "10",
+				},
+			},
+		},
+		{
+			name: "array of objects",
+			src: `[]{
+						name string
+						age int: minvalue=1
+					}`,
+			want: &validator.Item{
+				ItemType: validator.TypeArray,
+				BaseType: &validator.Item{
+					ItemType: validator.TypeStruct,
+					Fields: []*validator.Item{
+						{
+							Name:     "name",
+							ItemType: validator.TypeString,
+						},
+						{
+							Name:        "age",
+							ItemType:    validator.TypeInt,
+							HasMinValue: true,
+							MinValue:    "1",
+						},
+					},
+				},
+			},
 		},
 	}
 

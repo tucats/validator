@@ -185,7 +185,13 @@ func compileItem(t *tokenizer) (*Item, error) {
 
 	// Is it a structure? Compile all the fields.
 	if next == "{" {
-		err := compileObject(t, item)
+		var err error
+
+		if item.ItemType == TypeArray && item.BaseType != nil && item.BaseType.ItemType == TypeStruct {
+			err = compileObject(t, item.BaseType)
+		} else {
+			err = compileObject(t, item)
+		}
 
 		return item, err
 	}
@@ -248,12 +254,14 @@ func compileType(t *tokenizer, item *Item) error {
 	if next == "[" && t.peek(0) == "]" {
 		array = true
 
-		t.next() // consume "]"
+		t.move(1) // consume "]"
+
+		next = t.next() // get type name
 	}
 
 	// Is it a reserved type word? If not, assume it's the item name, and
 	// fetch the type name that follows it.
-	if _, ok := TypeNamesMap[next]; !ok {
+	if _, ok := TypeNamesMap[next]; next != "{" && !ok {
 		name = next
 
 		next = t.next()
@@ -266,7 +274,15 @@ func compileType(t *tokenizer, item *Item) error {
 	item.Name = name
 
 	if next == "{" {
-		item.ItemType = TypeStruct
+		// Special case for array of structs
+		if array {
+			item.ItemType = TypeArray
+			item.BaseType = &Item{
+				ItemType: TypeStruct,
+			}
+		} else {
+			item.ItemType = TypeStruct
+		}
 
 		t.move(-1)
 
@@ -288,4 +304,23 @@ func compileType(t *tokenizer, item *Item) error {
 	}
 
 	return ErrUnsupportedType.Value(next).Context(t.pos())
+}
+
+func DeepCopy(src *Item) *Item {
+	if src == nil {
+		return nil
+	}
+
+	result := &Item{
+		Name:     src.Name,
+		ItemType: src.ItemType,
+		Fields:   make([]*Item, len(src.Fields)),
+		BaseType: DeepCopy(src.BaseType),
+	}
+
+	for i, field := range src.Fields {
+		result.Fields[i] = DeepCopy(field)
+	}
+
+	return result
 }
