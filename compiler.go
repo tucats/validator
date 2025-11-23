@@ -122,6 +122,15 @@ func UpdateLineEndings(src string) string {
 func compileItem(t *tokenizer) (*Item, error) {
 	item := &Item{}
 
+	// Is it a structure? Compile all the fields.
+	if t.peek(0) == "{" {
+		t.move(1)
+
+		err := compileObject(t, item)
+
+		return item, err
+	}
+
 	if err := compileType(t, item); err != nil {
 		return nil, err
 	}
@@ -131,6 +140,17 @@ func compileItem(t *tokenizer) (*Item, error) {
 	}
 
 	next := t.next()
+
+	// If this is the end of a map key definition, we're done.
+	if next == "]" {
+		return item, nil
+	}
+
+	// If this is a map type and we've hit the end of the key declaration, we're done.
+	if item.ItemType == TypeMap && next == "]" {
+		return item, nil
+	}
+
 	if next == ":" {
 		if err := compileAttributes(t, item); err != nil {
 			return nil, err
@@ -139,6 +159,31 @@ func compileItem(t *tokenizer) (*Item, error) {
 		return item, nil
 	}
 
+	// Is it a map? Compile the key and value attributes.
+	if item.ItemType == TypeMap && next == "[" {
+		key, err := compileItem(t)
+		if err != nil {
+			return nil, err
+		}
+
+		if key.ItemType != TypeString {
+			return nil, ErrUnsupportedType.Context(t.pos()).Value(key.ItemType.String()).Expected("string")
+		}
+
+		key.ItemType = TypeMap
+		key.Name = item.Name
+
+		next := t.peek(-1)
+		if next != "]" {
+			return nil, ErrSyntaxError.Context(t.pos()).Value(next).Expected("]")
+		}
+
+		key.BaseType, err = compileItem(t)
+
+		return key, err
+	}
+
+	// Is it a structure? Compile all the fields.
 	if next == "{" {
 		err := compileObject(t, item)
 
@@ -152,7 +197,7 @@ func compileAttributes(t *tokenizer, item *Item) error {
 	text := ""
 
 	next := t.next()
-	for next != ";" {
+	for next != ";" && next != "]" {
 		text += next + " "
 		next = t.next()
 	}
