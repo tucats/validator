@@ -210,6 +210,10 @@ func compileObject(t *tokenizer, item *Item) error {
 
 	for {
 		// Compile the field
+		if t.peek(0) == "}" {
+			return nil
+		}
+
 		field, err := compileItem(t)
 		if err != nil {
 			return err
@@ -221,6 +225,10 @@ func compileObject(t *tokenizer, item *Item) error {
 			t.next()
 
 			return nil
+		}
+
+		if t.peek(0) == ";" {
+			t.move(1)
 		}
 	}
 }

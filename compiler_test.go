@@ -15,55 +15,6 @@ func TestCompile(t *testing.T) {
 		err  error
 	}{
 		{
-			name: "simple map type",
-			src:  "map[string] int",
-			want: &validator.Item{
-				ItemType: validator.TypeMap,
-				BaseType: &validator.Item{
-					ItemType: validator.TypeInt,
-				},
-			},
-		},
-		{
-			name: "map type with key enumerations",
-			src:  "map[string: enum=(red,green,blue)] int",
-			want: &validator.Item{
-				ItemType: validator.TypeMap,
-				Enums:    []string{"red", "green", "blue"},
-				BaseType: &validator.Item{
-					ItemType: validator.TypeInt,
-				},
-			},
-		},
-		{
-			name: "map type with key enumerations and value rule",
-			src:  "map[string: enum=(red,green,blue)] int : minvalue=1",
-			want: &validator.Item{
-				ItemType: validator.TypeMap,
-				Enums:    []string{"red", "green", "blue"},
-				BaseType: &validator.Item{
-					ItemType:    validator.TypeInt,
-					HasMinValue: true,
-					MinValue:    "1",
-				},
-			},
-		},
-		{
-			name: "map type with line breaks",
-			src: `map[string: enum=(red,
-							  green,
-							  blue)] int: minvalue=1`,
-			want: &validator.Item{
-				ItemType: validator.TypeMap,
-				Enums:    []string{"red", "green", "blue"},
-				BaseType: &validator.Item{
-					ItemType:    validator.TypeInt,
-					HasMinValue: true,
-					MinValue:    "1",
-				},
-			},
-		},
-		{
 			name: "simple integer type",
 			src:  "int;",
 			want: &validator.Item{
@@ -121,6 +72,76 @@ func TestCompile(t *testing.T) {
 			name: "integer type with invalid tag",
 			src:  "int: omit=true",
 			err:  validator.ErrInvalidKeyword.Value("omit"),
+		},
+		{
+			name: "simple map type",
+			src:  "map[string] int",
+			want: &validator.Item{
+				ItemType: validator.TypeMap,
+				BaseType: &validator.Item{
+					ItemType: validator.TypeInt,
+				},
+			},
+		},
+		{
+			name: "map type with key enumerations",
+			src:  "map[string: enum=(red,green,blue)] int",
+			want: &validator.Item{
+				ItemType: validator.TypeMap,
+				Enums:    []string{"red", "green", "blue"},
+				BaseType: &validator.Item{
+					ItemType: validator.TypeInt,
+				},
+			},
+		},
+		{
+			name: "map type with key enumerations and value rule",
+			src:  "map[string: enum=(red,green,blue)] int : minvalue=1",
+			want: &validator.Item{
+				ItemType: validator.TypeMap,
+				Enums:    []string{"red", "green", "blue"},
+				BaseType: &validator.Item{
+					ItemType:    validator.TypeInt,
+					HasMinValue: true,
+					MinValue:    "1",
+				},
+			},
+		},
+		{
+			name: "map type with line breaks",
+			src: `map[string: enum=(red,
+							  green,
+							  blue)] int: minvalue=1`,
+			want: &validator.Item{
+				ItemType: validator.TypeMap,
+				Enums:    []string{"red", "green", "blue"},
+				BaseType: &validator.Item{
+					ItemType:    validator.TypeInt,
+					HasMinValue: true,
+					MinValue:    "1",
+				},
+			},
+		},
+		{
+			name: "simple object type",
+			src: `{
+					name string
+					age  int
+				  }`,
+			want: &validator.Item{
+				ItemType: validator.TypeStruct,
+				Fields: []*validator.Item{
+					{
+						Name:     "name",
+						ItemType: validator.TypeString,
+					},
+					{
+						Name:     "age",
+						ItemType: validator.TypeInt,
+					},
+				},
+			},
+			err: nil,
 		},
 		{
 			name: "object type with auto-generated line endings",
