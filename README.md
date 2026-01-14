@@ -1,7 +1,7 @@
 # validator v0.1.11
 
 This is a JSON validator package. It allows tags to be added to structure definitions, and those structures are
-then passed to a Define() operation which creates a map of the valid structure definitions. Subsequently, JSON
+then passed to a Define() operation which creates a map of the validation structure definitions. Subsequently, JSON
 strings can be validated against the structure definitions to report if they are conformant or not.
 
 This is intended to help catch misspelled fields, missing required fields, and invalid field values.
@@ -12,7 +12,7 @@ Use the Go tag `validate` to identify what validations will be done on the JSON 
 The tag is followed by a quoted string containing comma-separate validation operations. These operations are:
 
 | Operation | Operand | Description |
-|-----------|---------|-------------|
+| --------- | ------- | ----------- |
 | required | | If specified, this field _must_ appear in the JSON |
 | min | any | The minimum int or float value allowed for this field |
 | max | any | The maximum int or float value allowed for this field |
@@ -20,12 +20,12 @@ The tag is followed by a quoted string containing comma-separate validation oper
 | maxlen | integer | The maximum length of a string value. or largest allowed array size |
 | enum | strings | A list of strings separated by vertical bars enumerating the allowed field values |
 | list | | The string value can be a list, each of which must match the enum list |
-| matchcase| | The enumerated values must match case to match the field value |
+| matchcase | | The enumerated values must match case to match the field value |
 | key | (items) | Specify limits on a map key value (which is always a string) |
 | value | (items) | Specify rules on a value for an array or map |
 
 You can separate enumerated values using commas rather than vertical bars by enclosing the
-list of enumerated values in parenthesis.  That is, `enum=red|green|blue` is the same as
+list of enumerated values in parenthesis. That is, `enum=red|green|blue` is the same as
 specifying `enum=(red,green,blue)`. Note that leading and trailing spaces in enumerated values
 are ignored.
 
@@ -74,7 +74,7 @@ type Employees struct {
 ## Creating a new Validator object
 
 A validator object is created by passing an instance of the structure to the validator, which
-builds a data structure that defines how the validation is to be performed.  For example,
+builds a data structure that defines how the validation is to be performed. For example,
 
 ```go
     employeeValidator, err := validator.New(&Employees{})
@@ -87,7 +87,7 @@ The `New()` function scans the object (a structure, in this case) and creates va
 
 For integer value types, a default min and max value is automatically created based on the
 size of the integer type. So a structure of Go type `uint8` will automatically have a minimum value of 0 and a maximum value of 255. Similarly, a structure field of type `float32` will have a size
-range based on a 32-bit floating point value.  No such checks are done for `float64` or `int64`
+range based on a 32-bit floating point value. No such checks are done for `float64` or `int64`
 data types.
 
 ## Validating a JSON string
@@ -126,13 +126,14 @@ in an example of the data type to be validated.
 In this example, a validator is created for an integer value (due to the use
 of the value `0` in the call to `New()` to create the validator. Note that not
 all Go types are supported by the validator. For example, you cannot create a
-validator for non-standard integer or float values, such as Int15 or Float32.
+validator for non-standard sizes of integer or float values, such as Int16 or
+Float32.
 
 Once you have created the validator, you can set attributes on it. For example,
 this code sets a minimum and maximum value for the validator.
 
 ```go
-    i := validator.NewType(validator.TypeInteger).SetMaxValue(1).SetMaxValue(10)
+    i := validator.NewType(validator.TypeInteger).SetMinValue(1).SetMaxValue(10)
 
     err := i.Validate(15)
     if err == nil {
@@ -150,13 +151,13 @@ The following modifier functions are used to set the characteristics of a
 validator.
 
 | Function | Description |
-|----------|-------------|
-| SetMinValue(v)   | Set the minimum allowed numeric value |
-| SetMAxValue(v)   | Set the maximum allowed numeric value |
-| SetMinLen(i)     | Set the minimum string or array length |
-| SetMaxLen(i)     | Set the maximum string or array length |
-| SetEnum(v...)    | Set the allowed values for integer or string values |
-| SetField(i, v)   | Set structure field `i` to validator `v` |
+| -------- | ----------- |
+| SetMinValue(v) | Set the minimum allowed numeric value |
+| SetMAxValue(v) | Set the maximum allowed numeric value |
+| SetMinLen(i) | Set the minimum string or array length |
+| SetMaxLen(i) | Set the maximum string or array length |
+| SetEnum(v...) | Set the allowed values for integer or string values |
+| SetField(i, v) | Set structure field `i` to validator `v` |
 | AddField(v) | Add a new structure field to the validator |
 | SetMatchCase(b) | Indicate if enumerated strings must match case |
 | SetForeignKey(b) | Indicate if undeclared field names are permitted |
